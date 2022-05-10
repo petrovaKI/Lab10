@@ -61,7 +61,6 @@ My_BD::My_BD(std::string& input_dir,
                                     &outHandles_);
 
     outHandles_.insert(outHandles_.begin(), outputBD_->DefaultColumnFamily());
-
   } catch (std::exception& e) {
     BOOST_LOG_TRIVIAL(error) << e.what();
   }
@@ -133,7 +132,8 @@ void My_BD::write_val_to_BD(Entry&& Key_Hash) {
                                        outHandles_[Key_Hash.Handle],
                                        Key_Hash.Key, Key_Hash.Value);
     BOOST_LOG_TRIVIAL(info)
-        <<"[" << Key_Hash.Key << "] " << " [" << Key_Hash.Value << "] " << " [-NEW DATA BASE-]";
+        <<"[" << Key_Hash.Key << "] " << " [" << Key_Hash.Value << "] "
+        << " [-NEW DATA BASE-]";
     if (!s.ok()) {
       throw std::runtime_error("Writing in output DB is failed");
     }

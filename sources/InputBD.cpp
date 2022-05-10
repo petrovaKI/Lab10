@@ -33,8 +33,8 @@ void make_inp_BD(const std::string& directory) {
     }
 
     std::vector<rocksdb::ColumnFamilyHandle*> handles;
-    status = db->CreateColumnFamilies(rocksdb::ColumnFamilyOptions(), column_family,
-                                      &handles);
+    status = db->CreateColumnFamilies(rocksdb::ColumnFamilyOptions(),
+                                      column_family,&handles);
     if (!status.ok()) throw std::runtime_error{"CreateColumnFamilies failed"};
 
     //   ЗАПОЛЯЕМ БД СЛУЧАЙНЫМИ ЗНАЧЕНИЯМИ
@@ -52,7 +52,7 @@ void make_inp_BD(const std::string& directory) {
 
         BOOST_LOG_TRIVIAL(info) << "Added [" << key << "]:[" << value
                                  << "] -- [" << c + 1 << " family column ]"
-                                 <<" -- [ FIRST DATA BASE ]" ;
+                                 <<" -- [ FIRST DATA BASE ]";
       }
     }
     //Перед удалением базы данных нужно закрыть
