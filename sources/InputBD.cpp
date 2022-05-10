@@ -34,7 +34,7 @@ void make_inp_BD(const std::string& directory) {
 
     std::vector<rocksdb::ColumnFamilyHandle*> handles;
     status = db->CreateColumnFamilies(rocksdb::ColumnFamilyOptions(),
-                                      column_family,&handles);
+                                      column_family, &handles);
     if (!status.ok()) throw std::runtime_error{"CreateColumnFamilies failed"};
 
     //   ЗАПОЛЯЕМ БД СЛУЧАЙНЫМИ ЗНАЧЕНИЯМИ
