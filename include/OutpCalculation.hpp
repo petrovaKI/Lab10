@@ -54,8 +54,6 @@ class My_BD {
   //начальная и конечная БД
   rocksdb::DB* inpBD_ = nullptr;
   rocksdb::DB* outputBD_ = nullptr;
-  //кол-во потоков
-  size_t threads_ = std::thread::hardware_concurrency();
   //пул потоков
   ThreadPool HashPool_;
 };

@@ -10,7 +10,6 @@ My_BD::My_BD(std::string& input_dir,
       ConsQueue_(),
       input_(input_dir),
       output_(output_dir),
-      threads_(number_of_threads),
       HashPool_(number_of_threads) {
   //STATUS-
   // Значения этого типа возвращаются большинством функций
