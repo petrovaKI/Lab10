@@ -20,7 +20,7 @@ HunterGate(
         SHA1 "95c47c92f68edb091b5d6d18924baabe02a6962a"
 )
 
-project(lab-10-kv-storage VERSION 0.1.0)
+project(10-kv-storage VERSION 0.1.0)
 string(APPEND CMAKE_CXX_FLAGS " -pedantic -Werror -Wall -Wextra")
 string(APPEND CMAKE_CXX_FLAGS " -Wno-unused-command-line-argument")
 string(APPEND CMAKE_CXX_FLAGS " -Wshadow -Wnon-virtual-dtor")
@@ -48,15 +48,21 @@ find_package(Boost
 hunter_add_package(GTest)
 find_package(GTest CONFIG REQUIRED)
 
+FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+
 add_library(${PROJECT_NAME} STATIC
         ${CMAKE_CURRENT_SOURCE_DIR}/sources/InputBD.cpp
-        sources/logging.cpp  sources/OutpCalculation.cpp)
-
+        ${CMAKE_CURRENT_SOURCE_DIR}/sources/logging.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/sources/OutpCalculation.cpp
+        )
+add_executable(tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/test.cpp
+        )
 add_executable(demo
         ${CMAKE_CURRENT_SOURCE_DIR}/demo/main.cpp
         )
-FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
-INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
@@ -65,7 +71,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/Third-party/PicoSHA
 )
-
 target_link_libraries(${PROJECT_NAME}
         Boost::log_setup
         Boost::log
@@ -73,25 +78,20 @@ target_link_libraries(${PROJECT_NAME}
         Boost::program_options
         Boost::thread
         Boost::boost
-        RocksDB::rocksdb
-        )
+        RocksDB::rocksdb)
 target_link_libraries(demo ${PROJECT_NAME})
-
-
-if(BUILD_TESTS)
-  add_executable(tests
-          ${CMAKE_CURRENT_SOURCE_DIR}/tests/test.cpp
-          )
-  target_link_libraries(tests ${PROJECT_NAME} GTest::gtest_main)
-  enable_testing()
-  add_test(NAME unit_tests COMMAND tests)
-endif()
+target_link_libraries(
+        tests
+        GTest::gtest_main
+)
+enable_testing()
+add_test(NAME unit_tests COMMAND tests)
 
 if(BUILD_COVERAGE)
   set(ENABLE_COVERAGE ON CACHE BOOL "Enable coverage build." FORCE)
   list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tools/coverage/cmake")
   find_package(codecov)
-  string(APPEND CMAKE_CXX_FLAGS " —coverage")
+  string(APPEND CMAKE_CXX_FLAGS " --coverage")
   add_coverage(${PROJECT_NAME})
   add_coverage(tests)
   coverage_evaluate()
@@ -105,7 +105,7 @@ if(BUILD_DOCS)
   find_package(Doxygen)
   doxygen_add_docs(docs include)
   install(DIRECTORY ${DOXYGEN_OUTPUT_DIRECTORY}/man DESTINATION share)
+  # add_dependencies(install docs) need to call target docs before install or package
 endif()
 
 include(CPackConfig.cmake)
-
