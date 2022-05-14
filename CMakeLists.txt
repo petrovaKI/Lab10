@@ -25,16 +25,14 @@ string(APPEND CMAKE_CXX_FLAGS " -pedantic -Werror -Wall -Wextra")
 string(APPEND CMAKE_CXX_FLAGS " -Wno-unused-command-line-argument")
 string(APPEND CMAKE_CXX_FLAGS " -Wshadow -Wnon-virtual-dtor")
 
+hunter_add_package(rocksdb)
+find_package(RocksDB CONFIG REQUIRED)
+
 hunter_add_package(GTest)
 find_package(GTest CONFIG REQUIRED)
 
 hunter_add_package(Boost COMPONENTS filesystem log system thread program_options)
 find_package(Boost CONFIG REQUIRED filesystem log log_setup system thread program_options)
-
-hunter_add_package(Boost COMPONENTS log thread system)
-find_package(Boost CONFIG REQUIRED log thread system)
-
-
 
 add_library(template STATIC
         ${CMAKE_CURRENT_SOURCE_DIR}/sources/InputBD.cpp
@@ -52,16 +50,18 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
         "$<INSTALL_INTERFACE:include>"
         )
-include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}/Third-party/PicoSHA
-)
+target_include_directories(${PROJECT_NAME} PUBLIC
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Third-party/PicoSHA>"
+        "$<INSTALL_INTERFACE:Third-party/PicoSHA>")
+
 target_link_libraries(demo ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}
         Boost::program_options
         Boost::log_setup
         Boost::log
         Boost::thread
-        Boost::filesystem)
+        Boost::filesystem
+        RocksDB::rocksdb)
 
 target_link_libraries(
         tests

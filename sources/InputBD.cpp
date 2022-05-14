@@ -28,7 +28,7 @@ void make_inp_BD(const std::string& directory) {
     // задаём размер вектора
     column_family.reserve(NUMBER_OF_COLUMNS);
     //заполняем вектор семействами столбцов
-    for (unsigned i = 0; i < NUMBER_OF_COLUMNS; i++) {
+    for (unsigned int i = 0; i < NUMBER_OF_COLUMNS; ++i) {
       column_family.emplace_back("ColumnFamily_" + std::to_string(i + 1));
     }
 
@@ -40,18 +40,18 @@ void make_inp_BD(const std::string& directory) {
     //   ЗАПОЛЯЕМ БД СЛУЧАЙНЫМИ ЗНАЧЕНИЯМИ
     std::string key;
     std::string value;
-    for (unsigned c = 0; c < NUMBER_OF_COLUMNS; c++) {
-      for (unsigned int i = 0; i < NUMBER_OF_VALUES; i++) {
-        key = "key-" + std::to_string((c * NUMBER_OF_VALUES) + i);
+    for (unsigned int i = 0; i < NUMBER_OF_COLUMNS; ++i) {
+      for (unsigned int j = 0; j < NUMBER_OF_VALUES; ++j) {
+        key = "key-" + std::to_string((i * NUMBER_OF_VALUES) + j);
         value = "value-" + std::to_string(std::rand() % 100);
-        status = db->Put(rocksdb::WriteOptions(), handles[c],
+        status = db->Put(rocksdb::WriteOptions(), handles[i],
                          rocksdb::Slice(key), rocksdb::Slice(value));
         if (!status.ok())
-          throw std::runtime_error{"Putting [" + std::to_string(c + 1) + "][" +
-                                   std::to_string(i) + "] failed"};
+          throw std::runtime_error{"Putting [" + std::to_string(i + 1) + "][" +
+                                   std::to_string(j) + "] failed"};
 
         BOOST_LOG_TRIVIAL(info) << "Added [" << key << "]:[" << value
-                                 << "] -- [" << c + 1 << " family column ]"
+                                 << "] -- [" << i + 1 << " family column ]"
                                  <<" -- [ FIRST DATA BASE ]";
       }
     }
