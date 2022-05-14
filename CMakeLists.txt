@@ -34,8 +34,7 @@ find_package(Boost CONFIG REQUIRED filesystem log log_setup system thread progra
 hunter_add_package(Boost COMPONENTS log thread system)
 find_package(Boost CONFIG REQUIRED log thread system)
 
-hunter_add_package(rocksdb)
-find_package(RocksDB CONFIG REQUIRED)
+
 
 add_library(template STATIC
         ${CMAKE_CURRENT_SOURCE_DIR}/sources/InputBD.cpp
@@ -62,8 +61,7 @@ target_link_libraries(${PROJECT_NAME}
         Boost::log_setup
         Boost::log
         Boost::thread
-        Boost::filesystem
-        RocksDB::rocksdb)
+        Boost::filesystem)
 
 target_link_libraries(
         tests
