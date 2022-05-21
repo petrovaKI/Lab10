@@ -13,7 +13,7 @@ int main(int argc, char **argv){
 //./demo --output outBD --thread_count 2 --log_level info
   po::options_description desc("short description");
   desc.add_options()
-      ("help,h", "help information")
+      ("help", "help information")
           ("log_level", po::value<std::string>(),
            "level logging")
               ("thread_count", po::value<unsigned>(),

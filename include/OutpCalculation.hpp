@@ -43,19 +43,19 @@ class My_BD {
   bool HashFlag_ = false;
   bool WriteFlag_ = false;
 
-  MyQueue<Entry> ProdQueue_;
-  MyQueue<Entry> ConsQueue_;
+  Queue<Entry> ProdQueue_;
+  Queue<Entry> ConsQueue_;
   std::string input_; //файл с начальной БД
   std::string output_; //файл с конечной БД
   //Семейства столбцов обрабатываются и ссылаются
   // с помощью  ColumnFamilyHandle
-  std::vector<rocksdb::ColumnFamilyHandle*> fromHandles_;
-  std::vector<rocksdb::ColumnFamilyHandle*> outHandles_;
+  std::vector<rocksdb::ColumnFamilyHandle*> fromHandles_;//начальная БД
+  std::vector<rocksdb::ColumnFamilyHandle*> outHandles_;// конечная
   //начальная и конечная БД
   rocksdb::DB* inpBD_ = nullptr;
   rocksdb::DB* outputBD_ = nullptr;
   //пул потоков
-  ThreadPool HashPool_;
+  ThreadPool hash_pool_;
 };
 
 #endif  //  INCLUDE_OUTPCALCULATION_HPP_

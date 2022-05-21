@@ -10,7 +10,7 @@ My_BD::My_BD(std::string& input_dir,
       ConsQueue_(),
       input_(input_dir),
       output_(output_dir),
-      HashPool_(number_of_threads) {
+      hash_pool_(number_of_threads) {
   //STATUS-
   // Значения этого типа возвращаются большинством функций
   // в RocksDB, которые могут столкнуться с ошибкой
@@ -44,7 +44,7 @@ My_BD::My_BD(std::string& input_dir,
       throw std::runtime_error("OpenForReadOnly of input DB is failed");
   //очищаем вектор с именами (строки)
     names.erase(names.begin());
-//------создаём новую БД для хешей--------------------
+//------создаём новую БД для хешей-------------------------
     //Options структура определяет, как RocksDB ведет себя
     rocksdb::Options options;
     //проверяем создана ли БД
@@ -154,7 +154,7 @@ void My_BD::make_cons_pool() {
   Entry item;
   while (!ParseFlag_ || !ProdQueue_.Empty()) {
     if (ProdQueue_.Pop(item)) {
-      HashPool_.enqueue([this](Entry x) { make_cons_queue(x); }, item);
+      hash_pool_.enqueue([this](Entry x) { make_cons_queue(x); }, item);
     }
   }
   HashFlag_ = true;
