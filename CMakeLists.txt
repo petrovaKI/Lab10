@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.12)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -25,21 +25,23 @@ string(APPEND CMAKE_CXX_FLAGS " -pedantic -Werror -Wall -Wextra")
 string(APPEND CMAKE_CXX_FLAGS " -Wno-unused-command-line-argument")
 string(APPEND CMAKE_CXX_FLAGS " -Wshadow -Wnon-virtual-dtor")
 
-hunter_add_package(GTest)
-find_package(GTest CONFIG REQUIRED)
-
 hunter_add_package(rocksdb)
 find_package(RocksDB CONFIG REQUIRED)
+
+hunter_add_package(GTest)
+find_package(GTest CONFIG REQUIRED)
 
 hunter_add_package(Boost COMPONENTS filesystem log system thread program_options)
 find_package(Boost CONFIG REQUIRED filesystem log log_setup system thread program_options)
 
-add_library(${PROJECT_NAME} STATIC
+add_library(template STATIC
         ${CMAKE_CURRENT_SOURCE_DIR}/sources/InputBD.cpp
-        sources/outpCalculation.cpp
-        sources/logging.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/sources/logging.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/sources/outpCalculation.cpp
         )
-
+add_executable(tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/test.cpp
+        )
 add_executable(demo
         ${CMAKE_CURRENT_SOURCE_DIR}/demo/main.cpp
         )
@@ -48,26 +50,26 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
         "$<INSTALL_INTERFACE:include>"
         )
-
-target_link_libraries(demo ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME} PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Third-party/PicoSHA>"
         "$<INSTALL_INTERFACE:Third-party/PicoSHA>")
-if(BUILD_TESTS)
-    add_executable(tests
-            ${CMAKE_CURRENT_SOURCE_DIR}/tests/test.cpp
-            )
-    target_link_libraries(${PROJECT_NAME}
-            Boost::program_options
-            Boost::log_setup
-            Boost::log
-            Boost::thread
-            Boost::filesystem
-            RocksDB::rocksdb
-            GTest::gtest_main)
-    enable_testing()
-    add_test(NAME unit_tests COMMAND tests)
-endif()
+
+target_link_libraries(demo ${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME}
+        Boost::program_options
+        Boost::log_setup
+        Boost::log
+        Boost::thread
+        Boost::filesystem
+        RocksDB::rocksdb)
+
+target_link_libraries(
+        tests
+        template
+        GTest::gtest_main
+)
+enable_testing()
+add_test(NAME unit_tests COMMAND tests)
 
 if(BUILD_COVERAGE)
     set(ENABLE_COVERAGE ON CACHE BOOL "Enable coverage build." FORCE)
@@ -87,21 +89,7 @@ if(BUILD_DOCS)
     find_package(Doxygen)
     doxygen_add_docs(docs include)
     install(DIRECTORY ${DOXYGEN_OUTPUT_DIRECTORY}/man DESTINATION share)
+    # add_dependencies(install docs) need to call target docs before install or package
 endif()
 
 include(CPackConfig.cmake)
-
-install(TARGETS ${PROJECT_NAME} demo
-        EXPORT "${PROJECT_NAME}-targets"
-        RUNTIME DESTINATION bin
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib
-        INCLUDES DESTINATION include
-        )
-
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include)
-
-install(EXPORT "${PROJECT_NAME}-targets"
-        NAMESPACE "${PROJECT_NAME}::"
-        DESTINATION "lib/cmake"
-        )
