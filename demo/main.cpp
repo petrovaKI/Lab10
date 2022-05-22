@@ -10,7 +10,7 @@
 namespace po = boost::program_options;
 
 int main(int argc, char **argv){
-  po::options_description desc("short description");
+  po::options_description desc("Options");
   desc.add_options()
       ("help", "help information")
           ("log_level", po::value<std::string>(),
