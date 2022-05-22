@@ -1,7 +1,7 @@
 // Copyright 2022 Petrova Kseniya <petrovaKI>
 
-#ifndef INCLUDE_MYQUEUE_HPP_
-#define INCLUDE_MYQUEUE_HPP_
+#ifndef INCLUDE_QUEUE_HPP_
+#define INCLUDE_QUEUE_HPP_
 
 #include <mutex>
 #include <queue>
@@ -31,4 +31,4 @@ class Queue {
   std::queue<T> queue_;
 };
 
-#endif  // INCLUDE_MYQUEUE_HPP_
+#endif  // INCLUDE_QUEUE_HPP_
