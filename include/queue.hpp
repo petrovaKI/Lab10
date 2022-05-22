@@ -1,4 +1,4 @@
-// Copyright 2022 Petrova Kseniya <ksyushki5@yandex.ru>
+// Copyright 2022 Petrova Kseniya <petrovaKI>
 
 #ifndef INCLUDE_MYQUEUE_HPP_
 #define INCLUDE_MYQUEUE_HPP_
@@ -11,23 +11,23 @@
 template <typename T>
 class Queue {
  public:
-  void Push(T&& other) {
-    std::lock_guard lockGuard{mutex};
+  void push(T&& other) {
+    std::lock_guard lockGuard{mtx};
     queue_.push(std::move(other));
   }
-  bool Empty() { return queue_.empty(); }
-  bool Pop(T& item) {
+  bool empty() { return queue_.empty(); }
+  bool pop(T& item) {
     if (queue_.empty()) return false;
 
-    mutex.lock();
+    mtx.lock();
     item = std::move(queue_.front());
     queue_.pop();
-    mutex.unlock();
+    mtx.unlock();
     return true;
   }
 
  private:
-  std::mutex mutex;
+  std::mutex mtx;
   std::queue<T> queue_;
 };
 

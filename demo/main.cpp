@@ -3,14 +3,13 @@
 #include <boost/unordered_map.hpp>
 #include <rocksdb/slice.h>
 
-#include "OutpCalculation.hpp"
+#include "outpCalculation.hpp"
 #include "logging.hpp"
 
 
 namespace po = boost::program_options;
 
 int main(int argc, char **argv){
-//./demo --output outBD --thread_count 2 --log_level info
   po::options_description desc("short description");
   desc.add_options()
       ("help", "help information")
@@ -55,3 +54,4 @@ int main(int argc, char **argv){
   manager.start_process();
  return 0;
 }
+//./demo --output outBD --thread_count 2 --log_level info

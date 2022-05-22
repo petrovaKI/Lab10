@@ -1,6 +1,6 @@
-// Copyright 2022 Petrova Kseniya <ksyushki5@yandex.ru>
+// Copyright 2022 Petrova Kseniya <petrovaKI>
 
-#include "OutpCalculation.hpp"
+#include "outpCalculation.hpp"
 #include <iostream>
 
 My_BD::My_BD(std::string& input_dir,
@@ -10,7 +10,7 @@ My_BD::My_BD(std::string& input_dir,
       ConsQueue_(),
       input_(input_dir),
       output_(output_dir),
-      hash_pool_(number_of_threads) {
+      pool_(number_of_threads) {
   //STATUS-
   // Значения этого типа возвращаются большинством функций
   // в RocksDB, которые могут столкнуться с ошибкой
@@ -21,14 +21,14 @@ My_BD::My_BD(std::string& input_dir,
   std::vector<rocksdb::ColumnFamilyDescriptor> desc;
   try {
     //List Column Families  - это статическая функция,
-    // которая возвращает список всех семейств столбцов,
-    // присутствующих в данный момент в базе данных.
+    //которая возвращает список всех семейств столбцов,
+    //присутствующих в данный момент в базе данных.
     s = rocksdb::DB::ListColumnFamilies(rocksdb::DBOptions(), input_, &names);
     if (!s.ok()) throw std::runtime_error("ListColumnFamilies is failed");
 
     //выделяем место в векторе под names
     desc.reserve(names.size());
-    // заполняем вектор семействами столбцов
+    // заполняем вектор дескрипторов именами семейств столбцов и опциями
     for (auto& x : names) {
       desc.emplace_back(x, rocksdb::ColumnFamilyOptions());
     }
@@ -38,6 +38,7 @@ My_BD::My_BD(std::string& input_dir,
     // Одна большая разница заключается в том, что при открытии БД
     // только для чтения не нужно указывать все семейства столбцов -
     // можно открыть только подмножество семейств столбцов.
+
     s = rocksdb::DB::OpenForReadOnly(rocksdb::DBOptions(), input_, desc,
                                      &fromHandles_, &inpBD_);
     if (!s.ok())
@@ -52,9 +53,9 @@ My_BD::My_BD(std::string& input_dir,
    //открываем БД на запись
     s = rocksdb::DB::Open(options, output_, &outputBD_);
     if (!s.ok()) throw std::runtime_error("Open of output DB is failed");
-  //создаём семецства столбцов
+  //--создаём семецства столбцов--
     //CreateColumnFamilies - создает семейство столбцов,
-    //указанное с параметром и именем names, и возвращает
+    //указанное с names, и возвращает
     // ColumnFamilyHandle через аргумент outHandles_.
     outputBD_->CreateColumnFamilies(rocksdb::ColumnFamilyOptions(), names,
                                     &outHandles_);
@@ -70,12 +71,12 @@ My_BD::My_BD(std::string& input_dir,
 void My_BD::parse_inp_BD() {
   std::vector<rocksdb::Iterator*> iterators;
   rocksdb::Iterator* it;
-
+  //устанавливаем итератор на исходную БД
   for (size_t i = 0; i < fromHandles_.size(); ++i) {
     it = inpBD_->NewIterator(rocksdb::ReadOptions(), fromHandles_[i]);
     for (it->SeekToFirst(); it->Valid(); it->Next()) {
-      //ставим в очередь пары ключ-значение
-      ProdQueue_.Push({i, it->key().ToString(), it->value().ToString()});
+      //ставим в очередь пары ключ-значение - очередь продюсера
+      ProdQueue_.push({i, it->key().ToString(), it->value().ToString()});
     }
     iterators.emplace_back(it);
     it = nullptr;
@@ -88,7 +89,7 @@ void My_BD::parse_inp_BD() {
   ParseFlag_ = true;
 }
 
-//деструктор
+//деструктор - закрываем начальную БД
 My_BD::~My_BD() {
   try {
     //Перед удалением базы данных нужно закрыть
@@ -125,7 +126,7 @@ My_BD::~My_BD() {
   }
 }
 //запись хешированных данных в новую БД
-void My_BD::write_val_to_BD(Entry&& Key_Hash) {
+void My_BD::write_val_to_BD(Entry &&Key_Hash) {
   try {
     rocksdb::Status s = outputBD_->Put(rocksdb::WriteOptions(),
                                        outHandles_[Key_Hash.Handle],
@@ -144,17 +145,19 @@ void My_BD::write_val_to_BD(Entry&& Key_Hash) {
 std::string calc_hash(const std::string& key, const std::string& value) {
   return picosha2::hash256_hex_string(std::string(key + value));
 }
-//----------ставим в очередь на запись строку для новой БД--------------
+//----------ставим в очередь консьюмера новые пары  для новой БД------
 void My_BD::make_cons_queue(Entry& en) {
-  ConsQueue_.Push({en.Handle, en.Key, calc_hash(en.Key, en.Value)});
+  ConsQueue_.push({en.Handle, en.Key, calc_hash(en.Key, en.Value)});
 }
 //--------------------------------------------------------------------
-//задаём пул потоков
+//задаём пул потоков консьюмера
 void My_BD::make_cons_pool() {
   Entry item;
-  while (!ParseFlag_ || !ProdQueue_.Empty()) {
-    if (ProdQueue_.Pop(item)) {
-      hash_pool_.enqueue([this](Entry x) { make_cons_queue(x); }, item);
+  //пока есть задачи в очереди продюсера
+  while (!ParseFlag_ || !ProdQueue_.empty()) {
+    if (ProdQueue_.pop(item)) {
+      //в пуле потоков вычисляем хеши и формируем очереь на запись
+      pool_.enqueue([this](Entry x) { make_cons_queue(x); }, item);
     }
   }
   HashFlag_ = true;
@@ -163,8 +166,10 @@ void My_BD::make_cons_pool() {
 //------записываем всю очередь в новую БД---------------------------
 void My_BD::write_new_BD() {
   Entry item;
-  while (!ConsQueue_.Empty() || !HashFlag_) {
-    if (ConsQueue_.Pop(item)) {
+  //пока есть задачи в очереди консьюмера
+  while (!ConsQueue_.empty() || !HashFlag_) {
+    if (ConsQueue_.pop(item)) {
+      //записываем их в новую БД
       write_val_to_BD(std::move(item));
     }
   }
@@ -179,7 +184,7 @@ void My_BD::start_process() {
   producer.join();
   make_cons_pool();
   consumer.join();
-
+//если какой-то из флагов не выставлен - ждём
   while (!HashFlag_ || !ParseFlag_ || !WriteFlag_) {
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }

@@ -5,6 +5,7 @@
 
 // СОЗДАНИЕ БД (принимает путь до файла)
 void make_inp_BD(const std::string& directory) {
+  //5 значений в каждом из 3-х семейств
   const unsigned int NUMBER_OF_COLUMNS = 3;
   const unsigned int NUMBER_OF_VALUES = 5;
 

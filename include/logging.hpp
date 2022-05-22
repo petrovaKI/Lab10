@@ -1,4 +1,4 @@
-// Copyright 2022 Petrova Kseniya <ksyushki5@yandex.ru>
+// Copyright 2022 Petrova Kseniya <petrovaKI>
 
 #ifndef INCLUDE_LOGGING_HPP_
 #define INCLUDE_LOGGING_HPP_

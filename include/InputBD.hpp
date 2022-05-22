@@ -1,4 +1,4 @@
-// Copyright 2022 Petrova Kseniya <ksyushki5@yandex.ru>
+// Copyright 2022 Petrova Kseniya <petrovaKI>
 
 #ifndef INCLUDE_INPUTBD_HPP_
 #define INCLUDE_INPUTBD_HPP_
@@ -11,6 +11,7 @@
 #include <rocksdb/advanced_options.h>
 #include <picosha2.h>
 
+//создаём первоначальную БД
 void make_inp_BD(const std::string& directory);
 
 
